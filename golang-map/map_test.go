@@ -6,8 +6,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	cmap "github.com/orcaman/concurrent-map/v2"
 )
 
 func BenchmarkMapWithLock(b *testing.B) {
@@ -15,35 +13,25 @@ func BenchmarkMapWithLock(b *testing.B) {
 		b.Run(item.name, func(b *testing.B) {
 			rand.Seed(time.Now().UnixNano())
 			var lock sync.RWMutex
-			m := make(map[string]int)
+			m := make(map[string]interface{})
 			for i := 0; i < int(item.msize); i++ {
 				m[strconv.Itoa(i)] = i
 			}
 			b.ResetTimer()
 			for k := 0; k < b.N; k++ {
 				wg := sync.WaitGroup{}
-				// read
-				for i := 0; i < int(item.read); i++ {
-					wg.Add(1)
+				wg.Add(int(item.count))
+				for i := 0; i < int(item.count); i++ {
 					go func() {
 						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
+						key := strconv.Itoa(rand.Int() % int(item.msize))
+						if item.isread {
 							lock.RLock()
-							_ = m[strconv.Itoa(tmp)]
+							_ = m[key]
 							lock.RUnlock()
-						}
-					}()
-				}
-				// write
-				for i := 0; i < int(item.write); i++ {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
+						} else {
 							lock.Lock()
-							m[strconv.Itoa(tmp)] = tmp + 1
+							m[key] = i
 							lock.Unlock()
 						}
 					}()
@@ -65,25 +53,15 @@ func BenchmarkSyncMap(b *testing.B) {
 			b.ResetTimer()
 			for k := 0; k < b.N; k++ {
 				wg := sync.WaitGroup{}
-				// read
-				for i := 0; i < int(item.read); i++ {
-					wg.Add(1)
+				wg.Add(int(item.count))
+				for i := 0; i < int(item.count); i++ {
 					go func() {
 						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
-							_, _ = m.Load(strconv.Itoa(tmp))
-						}
-					}()
-				}
-				// write
-				for i := 0; i < int(item.write); i++ {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
-							m.Store(strconv.Itoa(tmp), tmp+1)
+						key := strconv.Itoa(rand.Int() % int(item.msize))
+						if item.isread {
+							_, _ = m.Load(key)
+						} else {
+							m.Store(key, i)
 						}
 					}()
 				}
@@ -93,41 +71,41 @@ func BenchmarkSyncMap(b *testing.B) {
 	}
 }
 
-func BenchmarkCurMap(b *testing.B) {
-	for _, item := range testcase {
-		b.Run(item.name, func(b *testing.B) {
-			rand.Seed(time.Now().UnixNano())
-			m := cmap.New[int]()
-			for i := 0; i < int(item.msize); i++ {
-				m.Set(strconv.Itoa(i), i)
-			}
-			b.ResetTimer()
-			for k := 0; k < b.N; k++ {
-				wg := sync.WaitGroup{}
-				// read
-				for i := 0; i < int(item.read); i++ {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
-							_, _ = m.Get(strconv.Itoa(tmp))
-						}
-					}()
-				}
-				// write
-				for i := 0; i < int(item.write); i++ {
-					wg.Add(1)
-					go func() {
-						defer wg.Done()
-						for j := 0; j < int(item.times); j++ {
-							tmp := rand.Int() % int(item.msize)
-							m.Set(strconv.Itoa(tmp), tmp+1)
-						}
-					}()
-				}
-				wg.Wait()
-			}
-		})
-	}
-}
+// func BenchmarkCurMap(b *testing.B) {
+// 	for _, item := range testcase {
+// 		b.Run(item.name, func(b *testing.B) {
+// 			rand.Seed(time.Now().UnixNano())
+// 			m := cmap.New[int]()
+// 			for i := 0; i < int(item.msize); i++ {
+// 				m.Set(strconv.Itoa(i), i)
+// 			}
+// 			b.ResetTimer()
+// 			for k := 0; k < b.N; k++ {
+// 				wg := sync.WaitGroup{}
+// 				// read
+// 				for i := 0; i < int(item.read); i++ {
+// 					wg.Add(1)
+// 					go func() {
+// 						defer wg.Done()
+// 						for j := 0; j < int(item.times); j++ {
+// 							tmp := rand.Int() % int(item.msize)
+// 							_, _ = m.Get(strconv.Itoa(tmp))
+// 						}
+// 					}()
+// 				}
+// 				// write
+// 				for i := 0; i < int(item.write); i++ {
+// 					wg.Add(1)
+// 					go func() {
+// 						defer wg.Done()
+// 						for j := 0; j < int(item.times); j++ {
+// 							tmp := rand.Int() % int(item.msize)
+// 							m.Set(strconv.Itoa(tmp), tmp+1)
+// 						}
+// 					}()
+// 				}
+// 				wg.Wait()
+// 			}
+// 		})
+// 	}
+// }
