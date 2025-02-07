@@ -8,22 +8,22 @@ type Testcase struct {
 
 var testcase = []Testcase{
 	{
-		name:  "2个长度15字符串拼接",
+		name:  "len15 * 2",
 		len:   15,
 		times: 2,
 	},
 	{
-		name:  "2个长度50字符串拼接",
+		name:  "len50 * 2",
 		len:   10,
 		times: 2,
 	},
 	{
-		name:  "100个长度10字符串拼接",
+		name:  "len10 * 100",
 		len:   10,
 		times: 100,
 	},
 	{
-		name:  "1000个长度10字符串拼接",
+		name:  "len10 * 1000",
 		len:   10,
 		times: 1000,
 	},

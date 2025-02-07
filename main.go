@@ -3,6 +3,7 @@ package main
 import "mygo/test"
 
 func main() {
-	// test.StrCopyTest()
+	test.StrAppendTest()
+	test.StrCopyTest()
 	test.SprintfDebug()
 }

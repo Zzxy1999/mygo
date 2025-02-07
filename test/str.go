@@ -25,9 +25,21 @@ func StrCopyTest() {
 	printStrInfo(s)
 }
 
+func StrAppendTest() {
+	var s []byte
+	fmt.Printf("cap: %d\t", cap(s))
+	printStrInfo(string(s))
+	s = append(s, "1"...)
+	fmt.Printf("cap: %d\t", cap(s))
+	printStrInfo(string(s))
+	s = append(s, "1234"...)
+	fmt.Printf("cap: %d\t", cap(s))
+	printStrInfo(string(s))
+}
+
 func SprintfDebug() {
-	s1 := "123" // strconv.Itoa(rand.Int())
-	s2 := "456" //strconv.Itoa(rand.Int())
+	s1 := "0123456789" // strconv.Itoa(rand.Int())
+	s2 := "0123456789" //strconv.Itoa(rand.Int())
 	s := fmt.Sprintf("%s%s", s1, s2)
 	fmt.Println(s)
 }
